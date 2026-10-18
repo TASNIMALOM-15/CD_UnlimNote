@@ -1,0 +1,6 @@
+{
+  "name": "UniNotes",
+  "description": "Advanced Notebook, To-Do & Attachment Manager with E2EE Backup",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
