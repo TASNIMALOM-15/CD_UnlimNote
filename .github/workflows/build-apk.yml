@@ -7,6 +7,9 @@ on:
     branches: [ "main", "master" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Debug APK
@@ -45,10 +48,36 @@ jobs:
           JAVA_OPTS: "-Djava.awt.headless=true"
         run: ./gradlew assembleDebug --no-daemon --stacktrace -Djava.awt.headless=true
 
+      - name: Prepare APK Files
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/UniNotes.apk
+
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: UniNotes-Debug-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/debug/UniNotes.apk
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        with:
+          tag_name: "v1.0"
+          name: "UniNotes v1.0 (APK)"
+          body: "Direct download of UniNotes APK for Android."
+          files: app/build/outputs/apk/debug/UniNotes.apk
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Write Step Summary
+        run: |
+          echo "## 🎉 UniNotes APK Ready for Download!" >> $GITHUB_STEP_SUMMARY
+          echo "Your APK was successfully built." >> $GITHUB_STEP_SUMMARY
+          echo "### How to download on your phone:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Go back to the **Summary** page of this run (top left arrow or Summary tab)." >> $GITHUB_STEP_SUMMARY
+          echo "2. Scroll all the way down to the **Artifacts** section." >> $GITHUB_STEP_SUMMARY
+          echo "3. Tap **UniNotes-Debug-APK** to download." >> $GITHUB_STEP_SUMMARY
